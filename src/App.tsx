@@ -1,26 +1,32 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useEffect } from 'react'
+import axios from 'axios'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+
+import { CSRFToken } from './types'
+import './App.css'
+import { Auth } from './components/Auth'
+import { Todo } from './components/Todo'
 
 function App() {
+  useEffect(() => {
+    axios.defaults.withCredentials = true
+    const getCSRFToken = async () => {
+      const { data } = await axios.get<CSRFToken>(
+        `${process.env.REACT_APP_API_URL}/csrf`
+      )
+      axios.defaults.headers.common['X-CSRF-Token'] = data.csrf_token
+    }
+    getCSRFToken()
+  }, [])
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Auth />} />
+        <Route path="/todo" element={<Todo />} />
+      </Routes>
+    </BrowserRouter>
+  )
 }
 
-export default App;
+export default App

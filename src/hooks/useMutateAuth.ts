@@ -1,0 +1,67 @@
+import axios from 'axios'
+import { useMutation } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
+
+import useStore from '../store'
+import { useError } from './useError'
+import { Credential } from '../types'
+
+export const useMutateAuth = () => {
+  const navigate = useNavigate()
+  const resetEditedTask = useStore((store) => store.resetEditedTask)
+  const { errorHandling } = useError()
+
+  const loginMutation = useMutation(
+    async (user: Credential) => {
+      axios.post(`${process.env.REACT_APP_API_URL}/login`, user)
+    },
+    {
+      onSuccess: () => {
+        navigate('/todo')
+      },
+      onError: (err: any) => {
+        if (err.response.data.message) {
+          errorHandling(err.response.data.message)
+        } else {
+          errorHandling(err.response.data)
+        }
+      },
+    }
+  )
+
+  const signupMutation = useMutation(
+    async (user: Credential) => {
+      axios.post(`${process.env.REACT_APP_API_URL}/signup`, user)
+    },
+    {
+      onError: (err: any) => {
+        if (err.response.data.message) {
+          errorHandling(err.response.data.message)
+        } else {
+          errorHandling(err.response.data)
+        }
+      },
+    }
+  )
+
+  const logoutMutation = useMutation(
+    async () => {
+      axios.post(`${process.env.REACT_APP_API_URL}/logout`)
+    },
+    {
+      onSuccess: () => {
+        resetEditedTask()
+        navigate('/')
+      },
+      onError: (err: any) => {
+        if (err.response.data.message) {
+          errorHandling(err.response.data.message)
+        } else {
+          errorHandling(err.response.data)
+        }
+      },
+    }
+  )
+
+  return { loginMutation, signupMutation, logoutMutation }
+}
